@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">LifeTrack</string>
+    <string name="app_subtitle">Smart Location &amp; Activity Analyzer</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="continue_offline">Operate Offline (Local Room Only)</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_live">Live</string>
+    <string name="nav_history">History</string>
+    <string name="nav_places">Places</string>
+    <string name="nav_sleep">Sleep</string>
+    <string name="nav_work">Work</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+    <string name="tracking_active">Background Tracking Active</string>
+    <string name="tracking_paused">Tracking Paused</string>
+    <string name="sleep_disclaimer">Note: Sleep duration is an estimated value based on movement, stationary periods, and device activity data, not a medically verified sleep measurement.</string>
+    <string name="export_pdf">Export PDF</string>
+    <string name="export_excel">Export Excel (CSV)</string>
+</resources>

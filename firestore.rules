@@ -1,0 +1,236 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTripRecord(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() <= 128 &&
+             data.dateKey is string && data.dateKey.size() == 10 &&
+             data.transportMode is string && data.transportMode in ['WALKING', 'DRIVING', 'CYCLING', 'TRANSIT', 'STATIONARY'] &&
+             data.startTimeEpochMs is int && data.startTimeEpochMs >= 0 &&
+             data.endTimeEpochMs is int && data.endTimeEpochMs >= data.startTimeEpochMs &&
+             data.durationMinutes is int && data.durationMinutes >= 0 && data.durationMinutes <= 10080 &&
+             (data.distanceKm is number) && data.distanceKm >= 0 && data.distanceKm <= 50000 &&
+             data.startLabel is string && data.startLabel.size() >= 1 && data.startLabel.size() <= 120 &&
+             data.endLabel is string && data.endLabel.size() >= 1 && data.endLabel.size() <= 120 &&
+             (data.startLat is number) && data.startLat >= -90 && data.startLat <= 90 &&
+             (data.startLng is number) && data.startLng >= -180 && data.startLng <= 180 &&
+             (data.endLat is number) && data.endLat >= -90 && data.endLat <= 90 &&
+             (data.endLng is number) && data.endLng >= -180 && data.endLng <= 180 &&
+             data.routePointsSerialized is string && data.routePointsSerialized.size() <= 4000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPlaceLocation(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.category is string && data.category in ['HOME', 'WORK', 'GYM', 'CAFE', 'SHOPPING', 'OTHER'] &&
+             (data.latitude is number) && data.latitude >= -90 && data.latitude <= 90 &&
+             (data.longitude is number) && data.longitude >= -180 && data.longitude <= 180 &&
+             data.radiusMeters is int && data.radiusMeters >= 10 && data.radiusMeters <= 10000 &&
+             data.visitCount is int && data.visitCount >= 0 && data.visitCount <= 1000000 &&
+             data.totalDurationMinutes is int && data.totalDurationMinutes >= 0 && data.totalDurationMinutes <= 52560000 &&
+             data.lastArrivalEpochMs is int && data.lastArrivalEpochMs >= 0 &&
+             data.lastDepartureEpochMs is int && data.lastDepartureEpochMs >= 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSleepLog(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() <= 128 &&
+             data.dateKey is string && data.dateKey.size() == 10 &&
+             data.bedtimeEpochMs is int && data.bedtimeEpochMs >= 0 &&
+             data.wakeTimeEpochMs is int && data.wakeTimeEpochMs >= data.bedtimeEpochMs &&
+             data.durationMinutes is int && data.durationMinutes >= 0 && data.durationMinutes <= 1440 &&
+             data.sleepQualityScore is int && data.sleepQualityScore >= 0 && data.sleepQualityScore <= 100 &&
+             data.scheduleRegularity is string && data.scheduleRegularity in ['REGULAR', 'SLIGHT_SHIFT', 'IRREGULAR'] &&
+             data.notes is string && data.notes.size() <= 300 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWorkSession(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() <= 128 &&
+             data.dateKey is string && data.dateKey.size() == 10 &&
+             data.workplaceName is string && data.workplaceName.size() >= 1 && data.workplaceName.size() <= 100 &&
+             data.arrivalEpochMs is int && data.arrivalEpochMs >= 0 &&
+             data.departureEpochMs is int && data.departureEpochMs >= data.arrivalEpochMs &&
+             data.durationMinutes is int && data.durationMinutes >= 0 && data.durationMinutes <= 1440 &&
+             data.sessionType is string && data.sessionType in ['WORK', 'PERSONAL', 'OVERTIME'] &&
+             data.isManuallyCorrected is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/trips/{tripId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(tripId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(tripId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'dateKey', 'transportMode', 'startTimeEpochMs', 'endTimeEpochMs',
+                         'durationMinutes', 'distanceKm', 'startLabel', 'endLabel',
+                         'startLat', 'startLng', 'endLat', 'endLng', 'routePointsSerialized',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'dateKey', 'transportMode', 'startTimeEpochMs', 'endTimeEpochMs',
+                         'durationMinutes', 'distanceKm', 'startLabel', 'endLabel',
+                         'startLat', 'startLng', 'endLat', 'endLng', 'routePointsSerialized',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidTripRecord(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidTripRecord(incoming()) &&
+                       isValidId(userId) &&
+                       isValidId(tripId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'dateKey', 'transportMode', 'startTimeEpochMs', 'endTimeEpochMs',
+                         'durationMinutes', 'distanceKm', 'startLabel', 'endLabel',
+                         'startLat', 'startLng', 'endLat', 'endLng', 'routePointsSerialized',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(tripId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId}/places/{placeId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(placeId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(placeId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'name', 'category', 'latitude', 'longitude',
+                         'radiusMeters', 'visitCount', 'totalDurationMinutes',
+                         'lastArrivalEpochMs', 'lastDepartureEpochMs', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'name', 'category', 'latitude', 'longitude',
+                         'radiusMeters', 'visitCount', 'totalDurationMinutes',
+                         'lastArrivalEpochMs', 'lastDepartureEpochMs', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidPlaceLocation(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidPlaceLocation(incoming()) &&
+                       isValidId(userId) &&
+                       isValidId(placeId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'name', 'category', 'latitude', 'longitude',
+                         'radiusMeters', 'visitCount', 'totalDurationMinutes',
+                         'lastArrivalEpochMs', 'lastDepartureEpochMs', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(placeId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId}/sleep_logs/{sleepId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(sleepId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(sleepId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'dateKey', 'bedtimeEpochMs', 'wakeTimeEpochMs',
+                         'durationMinutes', 'sleepQualityScore', 'scheduleRegularity',
+                         'notes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'dateKey', 'bedtimeEpochMs', 'wakeTimeEpochMs',
+                         'durationMinutes', 'sleepQualityScore', 'scheduleRegularity',
+                         'notes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidSleepLog(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidSleepLog(incoming()) &&
+                       isValidId(userId) &&
+                       isValidId(sleepId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'dateKey', 'bedtimeEpochMs', 'wakeTimeEpochMs',
+                         'durationMinutes', 'sleepQualityScore', 'scheduleRegularity',
+                         'notes', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(sleepId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId}/work_sessions/{workId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(workId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(workId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'dateKey', 'workplaceName', 'arrivalEpochMs',
+                         'departureEpochMs', 'durationMinutes', 'sessionType',
+                         'isManuallyCorrected', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'dateKey', 'workplaceName', 'arrivalEpochMs',
+                         'departureEpochMs', 'durationMinutes', 'sessionType',
+                         'isManuallyCorrected', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidWorkSession(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidWorkSession(incoming()) &&
+                       isValidId(userId) &&
+                       isValidId(workId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'dateKey', 'workplaceName', 'arrivalEpochMs',
+                         'departureEpochMs', 'durationMinutes', 'sessionType',
+                         'isManuallyCorrected', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(workId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+    }
+  }
+}

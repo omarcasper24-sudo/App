@@ -1,0 +1,6 @@
+{
+  "name": "LifeTrack",
+  "description": "Smart location and activity analyzer that tracks movements, visited places, sleep, and work hours with interactive analytics and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

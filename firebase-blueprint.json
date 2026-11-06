@@ -1,0 +1,310 @@
+{
+  "entities": {
+    "TripRecord": {
+      "title": "TripRecord",
+      "description": "Represents a recorded movement trip with transport mode, distance, duration, and route telemetry.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID owning this trip record."
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "ISO date key YYYY-MM-DD for the trip."
+        },
+        "transportMode": {
+          "type": "string",
+          "enum": ["WALKING", "DRIVING", "CYCLING", "TRANSIT", "STATIONARY"],
+          "description": "Detected transportation mode."
+        },
+        "startTimeEpochMs": {
+          "type": "integer",
+          "description": "Trip departure epoch milliseconds."
+        },
+        "endTimeEpochMs": {
+          "type": "integer",
+          "description": "Trip arrival epoch milliseconds."
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Total duration of the trip in minutes."
+        },
+        "distanceKm": {
+          "type": "number",
+          "description": "Total distance traveled in kilometers."
+        },
+        "startLabel": {
+          "type": "string",
+          "description": "Starting place name or coordinate label."
+        },
+        "endLabel": {
+          "type": "string",
+          "description": "Ending place name or coordinate label."
+        },
+        "startLat": {
+          "type": "number",
+          "description": "Starting latitude."
+        },
+        "startLng": {
+          "type": "number",
+          "description": "Starting longitude."
+        },
+        "endLat": {
+          "type": "number",
+          "description": "Ending latitude."
+        },
+        "endLng": {
+          "type": "number",
+          "description": "Ending longitude."
+        },
+        "routePointsSerialized": {
+          "type": "string",
+          "description": "Compact semicolon-delimited lat,lng points for map rendering."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "dateKey",
+        "transportMode",
+        "startTimeEpochMs",
+        "endTimeEpochMs",
+        "durationMinutes",
+        "distanceKm",
+        "startLabel",
+        "endLabel",
+        "startLat",
+        "startLng",
+        "endLat",
+        "endLng",
+        "routePointsSerialized",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PlaceLocation": {
+      "title": "PlaceLocation",
+      "description": "Represents a frequently visited location identified by geofencing and clustering.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID owning this location."
+        },
+        "name": {
+          "type": "string",
+          "description": "User-assigned or detected place name."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["HOME", "WORK", "GYM", "CAFE", "SHOPPING", "OTHER"],
+          "description": "Category of the location."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Center latitude of the location."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Center longitude of the location."
+        },
+        "radiusMeters": {
+          "type": "integer",
+          "description": "Geofence radius in meters."
+        },
+        "visitCount": {
+          "type": "integer",
+          "description": "Total number of visits to this place."
+        },
+        "totalDurationMinutes": {
+          "type": "integer",
+          "description": "Cumulative minutes spent at this place."
+        },
+        "lastArrivalEpochMs": {
+          "type": "integer",
+          "description": "Most recent arrival timestamp in epoch milliseconds."
+        },
+        "lastDepartureEpochMs": {
+          "type": "integer",
+          "description": "Most recent departure timestamp in epoch milliseconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "category",
+        "latitude",
+        "longitude",
+        "radiusMeters",
+        "visitCount",
+        "totalDurationMinutes",
+        "lastArrivalEpochMs",
+        "lastDepartureEpochMs",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SleepLog": {
+      "title": "SleepLog",
+      "description": "Represents an estimated nighttime sleep session derived from stationary and location patterns.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID owning this sleep log."
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "Date key YYYY-MM-DD of the sleep session."
+        },
+        "bedtimeEpochMs": {
+          "type": "integer",
+          "description": "Estimated bedtime epoch milliseconds."
+        },
+        "wakeTimeEpochMs": {
+          "type": "integer",
+          "description": "Estimated wake-up time epoch milliseconds."
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Total estimated sleep duration in minutes."
+        },
+        "sleepQualityScore": {
+          "type": "integer",
+          "description": "Estimated sleep regularity/stationary score from 0 to 100."
+        },
+        "scheduleRegularity": {
+          "type": "string",
+          "enum": ["REGULAR", "SLIGHT_SHIFT", "IRREGULAR"],
+          "description": "Classification of sleep schedule regularity."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional user notes or schedule annotations."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "dateKey",
+        "bedtimeEpochMs",
+        "wakeTimeEpochMs",
+        "durationMinutes",
+        "sleepQualityScore",
+        "scheduleRegularity",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WorkSession": {
+      "title": "WorkSession",
+      "description": "Represents an estimated or manually adjusted working hours session at a workplace location.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID owning this work session."
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "Date key YYYY-MM-DD of the work session."
+        },
+        "workplaceName": {
+          "type": "string",
+          "description": "Name of the workplace location."
+        },
+        "arrivalEpochMs": {
+          "type": "integer",
+          "description": "Workplace arrival time in epoch milliseconds."
+        },
+        "departureEpochMs": {
+          "type": "integer",
+          "description": "Workplace departure time in epoch milliseconds."
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Total workplace duration in minutes."
+        },
+        "sessionType": {
+          "type": "string",
+          "enum": ["WORK", "PERSONAL", "OVERTIME"],
+          "description": "Classification of the session."
+        },
+        "isManuallyCorrected": {
+          "type": "boolean",
+          "description": "Whether the user manually edited this schedule."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "dateKey",
+        "workplaceName",
+        "arrivalEpochMs",
+        "departureEpochMs",
+        "durationMinutes",
+        "sessionType",
+        "isManuallyCorrected",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/trips/{tripId}": {
+      "schema": { "$ref": "#/entities/TripRecord" },
+      "description": "Stores cloud-synced movement trips per authenticated user."
+    },
+    "/users/{userId}/places/{placeId}": {
+      "schema": { "$ref": "#/entities/PlaceLocation" },
+      "description": "Stores cloud-synced frequently visited places per authenticated user."
+    },
+    "/users/{userId}/sleep_logs/{sleepId}": {
+      "schema": { "$ref": "#/entities/SleepLog" },
+      "description": "Stores cloud-synced estimated sleep logs per authenticated user."
+    },
+    "/users/{userId}/work_sessions/{workId}": {
+      "schema": { "$ref": "#/entities/WorkSession" },
+      "description": "Stores cloud-synced estimated and corrected work sessions per authenticated user."
+    }
+  }
+}
